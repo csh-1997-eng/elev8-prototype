@@ -1,3 +1,160 @@
+# Summary
+
+Good idea - mobile-first makes sense for a social/community app. Here's my recommendation:
+
+---
+
+## Recommended Stack
+
+### **Mobile App: React Native + Expo**
+
+**Why:**
+- ✅ One codebase → iOS + Android
+- ✅ Expo makes deployment easy (no Xcode/Android Studio hell during prototyping)
+- ✅ You can iterate fast, demo on your phone immediately
+- ✅ Easy to add web version later (Expo supports web)
+
+**Alternative if you want native performance:**
+- Flutter (Dart) - slightly steeper learning curve but very polished
+
+---
+
+### **Backend: Supabase (Postgres)**
+
+**Why:**
+- ✅ You already know it (matches your `database_design.md` skill)
+- ✅ Real-time subscriptions (perfect for social feed updates)
+- ✅ Auth built-in (email, social logins)
+- ✅ Row-level security (users can only see/edit their own data)
+- ✅ Generous free tier
+
+**Schema needs:**
+- Users, Posts, Comments, Upvotes/Downvotes
+- Forums/Communities
+- Wallet addresses (for blockchain tips)
+
+---
+
+### **Blockchain: Solana or Base (Ethereum L2)**
+
+**For tipping/payments:**
+
+**Option 1: Solana**
+- ✅ Fast, cheap transactions (<$0.01)
+- ✅ Good mobile wallet support (Phantom, Solflare)
+- ✅ Easy React Native integration
+- ❌ More volatile ecosystem
+
+**Option 2: Base (Coinbase's Ethereum L2)**
+- ✅ Ethereum-compatible (USDC, ETH)
+- ✅ Very cheap transactions
+- ✅ Backed by Coinbase (more stable)
+- ✅ Good wallet support (Coinbase Wallet, MetaMask)
+
+**My pick:** **Base** (more stable, easier onboarding via Coinbase)
+
+**Libraries:**
+- `wagmi` + `viem` (Ethereum/Base)
+- `@solana/web3.js` (if Solana)
+
+---
+
+### **File Storage: Supabase Storage**
+
+**For:**
+- Profile pictures
+- Post images/media
+
+**Why:**
+- ✅ Integrated with Supabase
+- ✅ CDN included
+- ✅ Easy to set up
+
+---
+
+## Full Stack Summary
+
+```
+Mobile:  React Native + Expo
+Backend: Supabase (Postgres + Auth + Real-time)
+Blockchain: Base (Ethereum L2) for tips/payments
+Storage: Supabase Storage
+Deployment: Expo (TestFlight for iOS, Play Store for Android)
+```
+
+---
+
+## Prototype Workflow
+
+**Week 1-2: Core Social Features (No Blockchain)**
+- User auth (Supabase)
+- Create/view posts and comments
+- Upvote/downvote
+- Forums/communities
+- Use `prototyping.md` skill (move fast, skip tests)
+
+**Week 3: Add Blockchain Tipping**
+- Integrate wallet connection (Base)
+- "Tip this answer" button
+- Transaction history
+
+**Week 4: Polish**
+- Use `ui_design.md` skill (clean, minimalist)
+- Use `security_audit.md` before any real money touches it
+- Use `production.md` for monitoring
+
+---
+
+## Alternative: Start with Web First
+
+If you want to validate faster:
+
+```
+Frontend: Next.js (web app)
+Backend: Supabase
+Blockchain: Base
+Deployment: Vercel
+```
+
+**Then add mobile later** (React Native can share API calls with web)
+
+**Pros:**
+- ✅ Faster to demo (just send a link)
+- ✅ Easier to debug
+- ✅ Can still use on phone via mobile browser
+
+**Cons:**
+- ❌ Less "app-like" feel
+- ❌ Wallet integration slightly clunkier on mobile web
+
+---
+
+## My Recommendation
+
+**Start web (Next.js), add mobile later.**
+
+**Why:**
+1. You can demo it to people immediately (send URL)
+2. Iterate faster (no app store submissions during prototyping)
+3. Wallet integration is easier to debug on desktop first
+4. You can always wrap it in React Native later (or use Expo web → native path)
+
+**Stack:**
+```
+Next.js + Supabase + Base (Ethereum L2) + Vercel
+```
+
+**Once validated, build mobile app:**
+```
+React Native + Expo (shares same Supabase backend)
+```
+
+---
+
+**What do you think? Web first then mobile, or mobile-only from the start?**
+
+# From Next.js
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

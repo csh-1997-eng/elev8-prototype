@@ -1,5 +1,5 @@
-# AI RULES — Project: {{PROJECT_NAME}}
-Stack: {{STACK}}
+# AI RULES — Project: elev8-prototype
+Stack: Next.js + Supabase + Base (Ethereum L2) + Vercel
 
 This file contains project-specific configurations and commands.
 
@@ -11,27 +11,27 @@ This file contains project-specific configurations and commands.
 
 ## Project Configuration
 
-**Project Name:** {{PROJECT_NAME}}
-**Stack:** {{STACK}}
+**Project Name:** elev8-prototype
+**Stack:** Next.js + Supabase + Base (Ethereum L2) + Vercel
 
 ---
 
 ## Repo-Specific Commands
 
 ### Format
-{{FORMAT_CMD}}
+pnpm format
 
 ### Lint
-{{LINT_CMD}}
+pnpm lint
 
 ### Typecheck
-{{TYPECHECK_CMD}}
+pnpm typecheck
 
 ### Tests
-{{TEST_CMD}}
+pnpm test
 
 ### Build
-{{BUILD_CMD}}
+pnpm build
 
 ---
 
