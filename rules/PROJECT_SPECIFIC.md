@@ -11,6 +11,12 @@ Overrides BASE_RULES.md when in conflict.
 
 ---
 
+## Project Desicion Context
+
+**To understand project data models, product focus, and solution context , see:** `docs/`
+
+---
+
 ## Overrides by Section
 
 **C) Code Style:**

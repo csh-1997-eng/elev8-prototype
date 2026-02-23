@@ -1,12 +1,10 @@
-import { MOCK_COMMUNITIES, MOCK_THREADS } from "@/lib/mock-data";
+import { getCommunitiesAll, getThreadsAll } from "@/lib/queries";
 import CommunityCard from "../../components/community-card";
 import ThreadCard from "../../components/thread-card";
 
-export default function ExplorePage() {
-  const communities = MOCK_COMMUNITIES;
-  const threads = [...MOCK_THREADS].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+export default async function ExplorePage() {
+  const communities = await getCommunitiesAll();
+  const threads = await getThreadsAll();
 
   return (
     <div className="space-y-10">
