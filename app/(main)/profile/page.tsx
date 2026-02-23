@@ -3,47 +3,155 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MOCK_CURRENT_USER, getThreadsByAuthor } from "@/lib/mock-data";
-import { Profile } from "@/lib/types";
+import { isMockMode, getSupabaseBrowserClient } from "@/lib/supabase";
+import { Profile, Thread } from "@/lib/types";
 import Avatar from "../../components/avatar";
 import ThreadCard from "../../components/thread-card";
 
 export default function MyProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<Profile | null>(null);
+  const [threads, setThreads] = useState<Thread[]>([]);
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
 
   useEffect(() => {
-    const stored = localStorage.getItem("mock_user");
-    if (!stored) {
-      router.push("/login");
-      return;
+    async function loadProfile() {
+      if (isMockMode) {
+        const stored = localStorage.getItem("mock_user");
+        if (!stored) {
+          router.push("/login");
+          return;
+        }
+        const parsed = JSON.parse(stored) as Profile;
+        setUser(parsed);
+        setDisplayName(parsed.display_name || "");
+        setBio(parsed.bio || "");
+        setThreads(getThreadsByAuthor(parsed.id));
+        return;
+      }
+
+      // Real Supabase auth
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        router.push("/login");
+        return;
+      }
+
+      // Fetch profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", authUser.id)
+        .single();
+
+      if (!profile) {
+        router.push("/login");
+        return;
+      }
+
+      const mapped: Profile = {
+        id: profile.id,
+        username: profile.username,
+        display_name: profile.display_name,
+        bio: profile.bio,
+        avatar_url: profile.avatar_url,
+        created_at: profile.created_at,
+      };
+      setUser(mapped);
+      setDisplayName(mapped.display_name || "");
+      setBio(mapped.bio || "");
+
+      // Fetch user's threads
+      const { data: threadRows } = await supabase
+        .from("threads")
+        .select("*, author:profiles!author_id(*), community:communities!community_id(*)")
+        .eq("author_id", authUser.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
+      if (threadRows) {
+        setThreads(
+          threadRows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            body: row.body,
+            community_id: row.community_id,
+            author_id: row.author_id,
+            upvotes: row.score ?? 0,
+            comment_count: row.answer_count ?? 0,
+            created_at: row.created_at,
+            author: row.author ? {
+              id: row.author.id,
+              username: row.author.username,
+              display_name: row.author.display_name,
+              bio: row.author.bio,
+              avatar_url: row.author.avatar_url,
+              created_at: row.author.created_at,
+            } : undefined,
+            community: row.community ? {
+              id: row.community.id,
+              name: row.community.name,
+              slug: row.community.slug,
+              description: row.community.description,
+              icon_url: row.community.icon_url,
+              created_by: row.community.created_by,
+              member_count: 0,
+              created_at: row.community.created_at,
+            } : undefined,
+          }))
+        );
+      }
     }
-    const parsed = JSON.parse(stored) as Profile;
-    setUser(parsed);
-    setDisplayName(parsed.display_name || "");
-    setBio(parsed.bio || "");
+
+    loadProfile();
   }, [router]);
 
-  function handleSave() {
+  async function handleSave() {
     if (!user) return;
-    const updated = { ...user, display_name: displayName, bio };
-    localStorage.setItem("mock_user", JSON.stringify(updated));
-    setUser(updated);
-    setEditing(false);
+
+    if (isMockMode) {
+      const updated = { ...user, display_name: displayName, bio };
+      localStorage.setItem("mock_user", JSON.stringify(updated));
+      setUser(updated);
+      setEditing(false);
+      return;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: displayName, bio, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+
+    if (!error) {
+      setUser({ ...user, display_name: displayName, bio });
+      setEditing(false);
+    }
   }
 
-  function handleLogout() {
-    localStorage.removeItem("mock_user");
-    document.cookie = "mock_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  async function handleLogout() {
+    if (isMockMode) {
+      localStorage.removeItem("mock_user");
+      document.cookie = "mock_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    } else {
+      const supabase = getSupabaseBrowserClient();
+      if (supabase) await supabase.auth.signOut();
+    }
     router.push("/explore");
     router.refresh();
   }
 
   if (!user) return null;
-
-  const threads = getThreadsByAuthor(user.id);
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">

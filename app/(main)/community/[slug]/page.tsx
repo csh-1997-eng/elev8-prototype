@@ -1,4 +1,4 @@
-import { getCommunityBySlug, getThreadsByCommunity } from "@/lib/mock-data";
+import { getCommunityBySlug, getThreadsByCommunity } from "@/lib/queries";
 import ThreadCard from "../../../components/thread-card";
 import { notFound } from "next/navigation";
 
@@ -8,10 +8,10 @@ export default async function CommunityPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const community = getCommunityBySlug(slug);
+  const community = await getCommunityBySlug(slug);
   if (!community) notFound();
 
-  const threads = getThreadsByCommunity(slug).sort(
+  const threads = (await getThreadsByCommunity(slug)).sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 
