@@ -1,4 +1,4 @@
-import { getProfileById, getThreadsByAuthor } from "@/lib/mock-data";
+import { getProfileById, getThreadsByAuthor } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import Avatar from "../../../components/avatar";
 import ThreadCard from "../../../components/thread-card";
@@ -9,10 +9,10 @@ export default async function PublicProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const profile = getProfileById(id);
+  const profile = await getProfileById(id);
   if (!profile) notFound();
 
-  const threads = getThreadsByAuthor(profile.id);
+  const threads = await getThreadsByAuthor(profile.id);
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">

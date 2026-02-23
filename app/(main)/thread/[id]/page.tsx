@@ -1,4 +1,4 @@
-import { getThreadById, getCommentsByThread } from "@/lib/mock-data";
+import { getThreadById, getCommentsByThread } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import Avatar from "../../../components/avatar";
 import CommentCard from "../../../components/comment-card";
@@ -20,10 +20,10 @@ export default async function ThreadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const thread = getThreadById(id);
+  const thread = await getThreadById(id);
   if (!thread) notFound();
 
-  const comments = getCommentsByThread(id);
+  const comments = await getCommentsByThread(id);
   const topLevel = comments.filter((c) => !c.parent_id);
   const replies = comments.filter((c) => c.parent_id);
 

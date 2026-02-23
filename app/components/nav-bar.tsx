@@ -4,12 +4,40 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ThemeToggle from "./theme-toggle";
 import Avatar from "./avatar";
+import { isMockMode, getSupabaseBrowserClient } from "@/lib/supabase";
 
 export default function NavBar() {
-  const [mockUser, setMockUser] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
-    setMockUser(localStorage.getItem("mock_user"));
+    async function checkAuth() {
+      if (isMockMode) {
+        const stored = localStorage.getItem("mock_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setUserName(parsed.display_name || "User");
+        }
+        return;
+      }
+
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        setUserName(profile.display_name || "User");
+      }
+    }
+
+    checkAuth();
   }, []);
 
   return (
@@ -30,9 +58,9 @@ export default function NavBar() {
         {/* Right side */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          {mockUser ? (
+          {userName ? (
             <Link href="/profile">
-              <Avatar name="Cole Hoffman" size="sm" />
+              <Avatar name={userName} size="sm" />
             </Link>
           ) : (
             <Link

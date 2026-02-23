@@ -14,6 +14,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +36,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
       const supabase = getSupabaseBrowserClient()!;
 
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              username: username || email.split("@")[0],
+              display_name: username || email.split("@")[0],
+            },
+          },
+        });
         if (error) throw error;
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -56,6 +66,22 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {mode === "signup" && !isMockMode && (
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium mb-1.5">
+            Username
+          </label>
+          <input
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 transition-shadow"
+            placeholder="your_handle"
+          />
+        </div>
+      )}
+
       <div>
         <label htmlFor="email" className="block text-sm font-medium mb-1.5">
           Email
