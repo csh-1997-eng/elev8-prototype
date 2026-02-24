@@ -78,6 +78,3 @@ The app was read-only after mvp1-base — users could browse communities, thread
 - All features work in both mock and real mode
 - Build passes with no type errors
 
-## Next Steps
-
-- Phase 2: Community memberships, reputation system, weighted voting, leaderboards
