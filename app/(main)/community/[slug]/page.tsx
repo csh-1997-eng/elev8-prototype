@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCommunityBySlug, getThreadsByCommunity } from "@/lib/queries";
 import ThreadCard from "../../../components/thread-card";
 import { notFound } from "next/navigation";
@@ -18,19 +19,27 @@ export default async function CommunityPage({
   return (
     <div className="space-y-8">
       {/* Community header */}
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-accent/10 text-accent font-bold flex items-center justify-center text-xl">
-          {community.name[0]}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-accent/10 text-accent font-bold flex items-center justify-center text-xl">
+            {community.name[0]}
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold">{community.name}</h1>
+            {community.description && (
+              <p className="text-muted mt-1">{community.description}</p>
+            )}
+            <p className="text-sm text-muted mt-1">
+              {community.member_count.toLocaleString()} members
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold">{community.name}</h1>
-          {community.description && (
-            <p className="text-muted mt-1">{community.description}</p>
-          )}
-          <p className="text-sm text-muted mt-1">
-            {community.member_count.toLocaleString()} members
-          </p>
-        </div>
+        <Link
+          href={`/community/${slug}/new`}
+          className="px-4 py-2 text-sm font-medium rounded-full bg-foreground text-background hover:opacity-90 transition-opacity whitespace-nowrap"
+        >
+          Ask a Question
+        </Link>
       </div>
 
       {/* Threads */}

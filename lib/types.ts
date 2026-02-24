@@ -24,6 +24,11 @@ export type Thread = {
   body: string | null;
   community_id: string;
   author_id: string;
+  thread_type: "question" | "discussion" | "link";
+  question_type: "verifiable" | "empirical" | "contested" | null;
+  question_type_locked: boolean;
+  status: "open" | "answered" | "archived";
+  accepted_answer_id: string | null;
   upvotes: number;
   comment_count: number;
   created_at: string;
@@ -38,6 +43,7 @@ export type Comment = {
   thread_id: string;
   author_id: string;
   parent_id: string | null;
+  is_accepted: boolean;
   upvotes: number;
   created_at: string;
   // Joined fields
