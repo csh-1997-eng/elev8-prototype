@@ -7,21 +7,32 @@ import { isMockMode, getSupabaseBrowserClient } from "@/lib/supabase";
 export default function AnswerVoteButtons({
   answerId,
   initialScore,
+  communityId,
 }: {
   answerId: string;
   initialScore: number;
+  communityId?: string;
 }) {
   const router = useRouter();
   const [score, setScore] = useState(initialScore);
   const [userVote, setUserVote] = useState<1 | -1 | null>(null);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [voteWeight, setVoteWeight] = useState(1.0);
 
   useEffect(() => {
     async function init() {
       if (isMockMode) {
         const stored = localStorage.getItem("mock_user");
-        if (stored) setUserId(JSON.parse(stored).id);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setUserId(parsed.id);
+          // Look up vote weight from mock data
+          if (communityId) {
+            const { getVoterWeight } = await import("@/lib/mock-data");
+            setVoteWeight(getVoterWeight(communityId, parsed.id));
+          }
+        }
         return;
       }
 
@@ -41,10 +52,24 @@ export default function AnswerVoteButtons({
         .maybeSingle();
 
       if (vote) setUserVote(vote.value as 1 | -1);
+
+      // Look up voter's weight from community reputation
+      if (communityId) {
+        const { data: rep } = await supabase
+          .from("community_reputation")
+          .select("vote_accuracy")
+          .eq("community_id", communityId)
+          .eq("profile_id", user.id)
+          .maybeSingle();
+
+        if (rep && rep.vote_accuracy > 0) {
+          setVoteWeight(rep.vote_accuracy);
+        }
+      }
     }
 
     init();
-  }, [answerId]);
+  }, [answerId, communityId]);
 
   async function handleVote(value: 1 | -1) {
     if (!userId || loading) return;
@@ -84,10 +109,10 @@ export default function AnswerVoteButtons({
         setScore(score - userVote + value);
         setUserVote(value);
       } else {
-        // New vote
+        // New vote — include voter's reputation weight
         await supabase
           .from("answer_votes")
-          .insert({ answer_id: answerId, profile_id: userId, value });
+          .insert({ answer_id: answerId, profile_id: userId, value, weight: voteWeight });
         setScore(score + value);
         setUserVote(value);
       }

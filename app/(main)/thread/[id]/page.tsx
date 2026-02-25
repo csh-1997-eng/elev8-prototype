@@ -55,15 +55,25 @@ export default async function ThreadPage({
           {thread.title}
         </h1>
         <div className="flex items-center gap-3 mb-4">
-          <Avatar
-            name={thread.author?.display_name || null}
-            url={thread.author?.avatar_url}
-            size="sm"
-          />
+          {thread.author ? (
+            <Link href={`/profile/${thread.author.id}`}>
+              <Avatar
+                name={thread.author.display_name || null}
+                url={thread.author.avatar_url}
+                size="sm"
+              />
+            </Link>
+          ) : (
+            <Avatar name={null} size="sm" />
+          )}
           <div>
-            <span className="text-sm font-medium">
-              {thread.author?.display_name}
-            </span>
+            {thread.author ? (
+              <Link href={`/profile/${thread.author.id}`} className="text-sm font-medium hover:text-accent transition-colors">
+                {thread.author.display_name}
+              </Link>
+            ) : (
+              <span className="text-sm font-medium text-muted">[deleted]</span>
+            )}
             <span className="text-xs text-muted ml-2">
               {timeAgo(thread.created_at)}
             </span>
@@ -106,6 +116,7 @@ export default async function ThreadPage({
               comment={comment}
               threadId={id}
               threadAuthorId={thread.author_id}
+              communityId={thread.community_id}
             />
             {replies
               .filter((r) => r.parent_id === comment.id)
@@ -116,6 +127,7 @@ export default async function ThreadPage({
                   isReply
                   threadId={id}
                   threadAuthorId={thread.author_id}
+                  communityId={thread.community_id}
                 />
               ))}
           </div>

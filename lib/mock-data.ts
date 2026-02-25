@@ -1,4 +1,4 @@
-import { Profile, Community, Thread, Comment } from "./types";
+import { Profile, Community, Thread, Comment, CommunityMembership, CommunityReputation } from "./types";
 
 // ── Profiles ──────────────────────────────────────────────
 export const MOCK_PROFILES: Profile[] = [
@@ -8,6 +8,7 @@ export const MOCK_PROFILES: Profile[] = [
     display_name: "Cole Hoffman",
     bio: "Builder. Applied AI engineer. Trying to make the internet less extractive.",
     avatar_url: null,
+    rac_score: 142,
     created_at: "2025-01-15T10:00:00Z",
   },
   {
@@ -16,6 +17,7 @@ export const MOCK_PROFILES: Profile[] = [
     display_name: "Alex Rivera",
     bio: "Philosophy nerd. Thinks about systems and incentives.",
     avatar_url: null,
+    rac_score: 87,
     created_at: "2025-02-01T12:00:00Z",
   },
   {
@@ -24,6 +26,7 @@ export const MOCK_PROFILES: Profile[] = [
     display_name: "Priya Kumar",
     bio: "Full-stack dev. Obsessed with clean UI.",
     avatar_url: null,
+    rac_score: 63,
     created_at: "2025-02-10T08:00:00Z",
   },
   {
@@ -32,6 +35,7 @@ export const MOCK_PROFILES: Profile[] = [
     display_name: "Marcus Johnson",
     bio: "Crypto & DeFi researcher. Base chain maximalist.",
     avatar_url: null,
+    rac_score: 105,
     created_at: "2025-03-01T14:00:00Z",
   },
   {
@@ -40,6 +44,7 @@ export const MOCK_PROFILES: Profile[] = [
     display_name: "Sarah Lin",
     bio: "Product designer at a startup. Minimalism enthusiast.",
     avatar_url: null,
+    rac_score: 51,
     created_at: "2025-03-15T09:00:00Z",
   },
 ];
@@ -343,6 +348,54 @@ export const MOCK_COMMENTS: Comment[] = [
   },
 ];
 
+// ── Community Memberships ─────────────────────────────────
+export const MOCK_MEMBERSHIPS: CommunityMembership[] = [
+  // Cole: Technology (admin), Startups (admin), Crypto
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[0].id, role: "admin", status: "active", created_at: "2025-01-20T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[4].id, profile_id: MOCK_PROFILES[0].id, role: "admin", status: "active", created_at: "2025-02-05T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[3].id, profile_id: MOCK_PROFILES[0].id, role: "member", status: "active", created_at: "2025-02-15T10:00:00Z" },
+  // Alex: Philosophy (admin), Crypto, Technology
+  { community_id: MOCK_COMMUNITIES[1].id, profile_id: MOCK_PROFILES[1].id, role: "admin", status: "active", created_at: "2025-01-22T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[3].id, profile_id: MOCK_PROFILES[1].id, role: "member", status: "active", created_at: "2025-02-10T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[1].id, role: "member", status: "active", created_at: "2025-02-12T10:00:00Z" },
+  // Priya: Science (admin), Design, Technology
+  { community_id: MOCK_COMMUNITIES[5].id, profile_id: MOCK_PROFILES[2].id, role: "admin", status: "active", created_at: "2025-02-10T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[2].id, profile_id: MOCK_PROFILES[2].id, role: "member", status: "active", created_at: "2025-02-15T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[2].id, role: "member", status: "active", created_at: "2025-02-18T10:00:00Z" },
+  // Marcus: Crypto (admin), Technology, Startups
+  { community_id: MOCK_COMMUNITIES[3].id, profile_id: MOCK_PROFILES[3].id, role: "admin", status: "active", created_at: "2025-02-01T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[3].id, role: "member", status: "active", created_at: "2025-02-05T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[4].id, profile_id: MOCK_PROFILES[3].id, role: "member", status: "active", created_at: "2025-02-20T10:00:00Z" },
+  // Sarah: Design (admin), Startups, Science
+  { community_id: MOCK_COMMUNITIES[2].id, profile_id: MOCK_PROFILES[4].id, role: "admin", status: "active", created_at: "2025-01-25T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[4].id, profile_id: MOCK_PROFILES[4].id, role: "member", status: "active", created_at: "2025-02-10T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[5].id, profile_id: MOCK_PROFILES[4].id, role: "member", status: "active", created_at: "2025-02-22T10:00:00Z" },
+];
+
+// ── Community Reputation ──────────────────────────────────
+export const MOCK_REPUTATION: CommunityReputation[] = [
+  // Cole: Technology 72, Startups 45, Crypto 25
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[0].id, score: 72, answers_accepted: 5, oracle_agreements: 0, vote_accuracy: 0.82, updated_at: "2025-12-01T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[4].id, profile_id: MOCK_PROFILES[0].id, score: 45, answers_accepted: 3, oracle_agreements: 0, vote_accuracy: 0.75, updated_at: "2025-12-01T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[3].id, profile_id: MOCK_PROFILES[0].id, score: 25, answers_accepted: 1, oracle_agreements: 0, vote_accuracy: 0.60, updated_at: "2025-11-20T10:00:00Z" },
+  // Alex: Philosophy 52, Crypto 20, Technology 15
+  { community_id: MOCK_COMMUNITIES[1].id, profile_id: MOCK_PROFILES[1].id, score: 52, answers_accepted: 4, oracle_agreements: 0, vote_accuracy: 0.78, updated_at: "2025-11-28T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[3].id, profile_id: MOCK_PROFILES[1].id, score: 20, answers_accepted: 1, oracle_agreements: 0, vote_accuracy: 0.65, updated_at: "2025-11-25T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[1].id, score: 15, answers_accepted: 1, oracle_agreements: 0, vote_accuracy: 0.70, updated_at: "2025-11-20T10:00:00Z" },
+  // Priya: Science 38, Design 15, Technology 10
+  { community_id: MOCK_COMMUNITIES[5].id, profile_id: MOCK_PROFILES[2].id, score: 38, answers_accepted: 3, oracle_agreements: 0, vote_accuracy: 0.85, updated_at: "2025-11-15T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[2].id, profile_id: MOCK_PROFILES[2].id, score: 15, answers_accepted: 1, oracle_agreements: 0, vote_accuracy: 0.72, updated_at: "2025-11-10T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[2].id, score: 10, answers_accepted: 0, oracle_agreements: 0, vote_accuracy: 0.68, updated_at: "2025-11-05T10:00:00Z" },
+  // Marcus: Crypto 65, Technology 25, Startups 15
+  { community_id: MOCK_COMMUNITIES[3].id, profile_id: MOCK_PROFILES[3].id, score: 65, answers_accepted: 6, oracle_agreements: 0, vote_accuracy: 0.88, updated_at: "2025-11-20T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[0].id, profile_id: MOCK_PROFILES[3].id, score: 25, answers_accepted: 2, oracle_agreements: 0, vote_accuracy: 0.74, updated_at: "2025-11-15T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[4].id, profile_id: MOCK_PROFILES[3].id, score: 15, answers_accepted: 1, oracle_agreements: 0, vote_accuracy: 0.70, updated_at: "2025-11-10T10:00:00Z" },
+  // Sarah: Design 35, Startups 10, Science 6
+  { community_id: MOCK_COMMUNITIES[2].id, profile_id: MOCK_PROFILES[4].id, score: 35, answers_accepted: 3, oracle_agreements: 0, vote_accuracy: 0.80, updated_at: "2025-11-25T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[4].id, profile_id: MOCK_PROFILES[4].id, score: 10, answers_accepted: 1, oracle_agreements: 0, vote_accuracy: 0.65, updated_at: "2025-11-12T10:00:00Z" },
+  { community_id: MOCK_COMMUNITIES[5].id, profile_id: MOCK_PROFILES[4].id, score: 6, answers_accepted: 0, oracle_agreements: 0, vote_accuracy: 0.55, updated_at: "2025-11-08T10:00:00Z" },
+];
+
 // ── Helper functions ──────────────────────────────────────
 export function getThreadsByCommunity(slug: string): Thread[] {
   const community = MOCK_COMMUNITIES.find((c) => c.slug === slug);
@@ -368,4 +421,45 @@ export function getProfileById(id: string): Profile | undefined {
 
 export function getThreadsByAuthor(authorId: string): Thread[] {
   return MOCK_THREADS.filter((t) => t.author_id === authorId);
+}
+
+export function getMembershipsByProfile(profileId: string): CommunityMembership[] {
+  return MOCK_MEMBERSHIPS
+    .filter((m) => m.profile_id === profileId && m.status === "active")
+    .map((m) => ({
+      ...m,
+      community: MOCK_COMMUNITIES.find((c) => c.id === m.community_id),
+    }));
+}
+
+export function getMembershipByCommunityAndProfile(communityId: string, profileId: string): CommunityMembership | undefined {
+  return MOCK_MEMBERSHIPS.find(
+    (m) => m.community_id === communityId && m.profile_id === profileId && m.status === "active"
+  );
+}
+
+export function getReputationByProfile(profileId: string): CommunityReputation[] {
+  return MOCK_REPUTATION
+    .filter((r) => r.profile_id === profileId)
+    .map((r) => ({
+      ...r,
+      community: MOCK_COMMUNITIES.find((c) => c.id === r.community_id),
+    }));
+}
+
+export function getCommunityLeaderboard(communityId: string): (CommunityReputation & { profile: Profile })[] {
+  return MOCK_REPUTATION
+    .filter((r) => r.community_id === communityId && r.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((r) => ({
+      ...r,
+      profile: MOCK_PROFILES.find((p) => p.id === r.profile_id)!,
+    }));
+}
+
+export function getVoterWeight(communityId: string, profileId: string): number {
+  const rep = MOCK_REPUTATION.find(
+    (r) => r.community_id === communityId && r.profile_id === profileId
+  );
+  return rep?.vote_accuracy ?? 1.0;
 }

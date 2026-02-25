@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Thread } from "@/lib/types";
 import Avatar from "./avatar";
 
@@ -13,10 +16,12 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function ThreadCard({ thread }: { thread: Thread }) {
+  const router = useRouter();
+
   return (
-    <Link
-      href={`/thread/${thread.id}`}
-      className="block p-6 rounded-2xl border border-border bg-surface hover:bg-surface-hover transition-colors"
+    <div
+      onClick={() => router.push(`/thread/${thread.id}`)}
+      className="block p-6 rounded-2xl border border-border bg-surface hover:bg-surface-hover transition-colors cursor-pointer"
     >
       {/* Community + Author header */}
       <div className="flex items-center gap-2 mb-3">
@@ -48,9 +53,15 @@ export default function ThreadCard({ thread }: { thread: Thread }) {
             url={thread.author?.avatar_url}
             size="sm"
           />
-          <span className="text-sm text-muted">
-            {thread.author?.display_name || thread.author?.username}
-          </span>
+          {thread.author && (
+            <Link
+              href={`/profile/${thread.author.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-sm text-muted hover:text-accent transition-colors"
+            >
+              {thread.author.display_name || thread.author.username}
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-4 text-sm text-muted">
           <span className="flex items-center gap-1">
@@ -67,6 +78,6 @@ export default function ThreadCard({ thread }: { thread: Thread }) {
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

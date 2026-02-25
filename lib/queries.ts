@@ -9,8 +9,10 @@ import {
   getCommunityBySlug as mockGetCommunityBySlug,
   getProfileById as mockGetProfileById,
   getThreadsByAuthor as mockGetThreadsByAuthor,
+  getReputationByProfile as mockGetReputationByProfile,
+  getCommunityLeaderboard as mockGetCommunityLeaderboard,
 } from "./mock-data";
-import type { Profile, Community, Thread, Comment } from "./types";
+import type { Profile, Community, Thread, Comment, CommunityReputation } from "./types";
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -46,6 +48,7 @@ function mapProfile(row: Record<string, unknown>): Profile {
     display_name: (row.display_name as string) ?? null,
     bio: (row.bio as string) ?? null,
     avatar_url: (row.avatar_url as string) ?? null,
+    rac_score: (row.rac_score as number) ?? 0,
     created_at: row.created_at as string,
   };
 }
@@ -58,8 +61,26 @@ function mapCommunity(row: Record<string, unknown>): Community {
     description: (row.description as string) ?? null,
     icon_url: (row.icon_url as string) ?? null,
     created_by: (row.created_by as string) ?? null,
-    member_count: 0, // No community_memberships table yet
+    member_count: (row.member_count as number) ?? 0,
     created_at: row.created_at as string,
+  };
+}
+
+function mapReputation(
+  row: Record<string, unknown>,
+  profile?: Profile,
+  community?: Community
+): CommunityReputation {
+  return {
+    community_id: row.community_id as string,
+    profile_id: row.profile_id as string,
+    score: (row.score as number) ?? 0,
+    answers_accepted: (row.answers_accepted as number) ?? 0,
+    oracle_agreements: (row.oracle_agreements as number) ?? 0,
+    vote_accuracy: (row.vote_accuracy as number) ?? 0,
+    updated_at: row.updated_at as string,
+    profile,
+    community,
   };
 }
 
@@ -227,5 +248,47 @@ export async function getThreadsByAuthor(authorId: string): Promise<Thread[]> {
     const author = row.author ? mapProfile(row.author) : undefined;
     const community = row.community ? mapCommunity(row.community) : undefined;
     return mapThread(row, author, community);
+  });
+}
+
+// ── Reputation & Membership Queries ──────────────────────
+
+export async function getReputationByProfile(profileId: string): Promise<CommunityReputation[]> {
+  if (isMockMode) return mockGetReputationByProfile(profileId);
+
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("community_reputation")
+    .select("*, community:communities!community_id(*)")
+    .eq("profile_id", profileId)
+    .order("score", { ascending: false });
+
+  if (error || !data) return [];
+  return data.map((row) => {
+    const community = row.community ? mapCommunity(row.community) : undefined;
+    return mapReputation(row, undefined, community);
+  });
+}
+
+export async function getCommunityLeaderboard(communityId: string): Promise<CommunityReputation[]> {
+  if (isMockMode) return mockGetCommunityLeaderboard(communityId);
+
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("community_reputation")
+    .select("*, profile:profiles!profile_id(*)")
+    .eq("community_id", communityId)
+    .gt("score", 0)
+    .order("score", { ascending: false })
+    .limit(10);
+
+  if (error || !data) return [];
+  return data.map((row) => {
+    const profile = row.profile ? mapProfile(row.profile) : undefined;
+    return mapReputation(row, profile);
   });
 }

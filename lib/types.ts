@@ -4,6 +4,7 @@ export type Profile = {
   display_name: string | null;
   bio: string | null;
   avatar_url: string | null;
+  rac_score: number;
   created_at: string;
 };
 
@@ -34,6 +35,30 @@ export type Thread = {
   created_at: string;
   // Joined fields
   author?: Profile;
+  community?: Community;
+};
+
+export type CommunityMembership = {
+  community_id: string;
+  profile_id: string;
+  role: "member" | "moderator" | "admin";
+  status: "active" | "banned" | "muted";
+  created_at: string;
+  // Joined fields
+  profile?: Profile;
+  community?: Community;
+};
+
+export type CommunityReputation = {
+  community_id: string;
+  profile_id: string;
+  score: number;
+  answers_accepted: number;
+  oracle_agreements: number;
+  vote_accuracy: number;
+  updated_at: string;
+  // Joined fields
+  profile?: Profile;
   community?: Community;
 };
 
