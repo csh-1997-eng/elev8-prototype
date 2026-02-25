@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_CURRENT_USER, getThreadsByAuthor } from "@/lib/mock-data";
+import Link from "next/link";
+import { getThreadsByAuthor, getReputationByProfile as mockGetReputationByProfile, getProfileById as mockGetProfileById } from "@/lib/mock-data";
 import { isMockMode, getSupabaseBrowserClient } from "@/lib/supabase";
-import { Profile, Thread } from "@/lib/types";
+import { Profile, Thread, CommunityReputation } from "@/lib/types";
 import Avatar from "../../components/avatar";
 import ThreadCard from "../../components/thread-card";
 
@@ -12,6 +13,7 @@ export default function MyProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<Profile | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [reputation, setReputation] = useState<CommunityReputation[]>([]);
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -24,11 +26,18 @@ export default function MyProfilePage() {
           router.push("/login");
           return;
         }
-        const parsed = JSON.parse(stored) as Profile;
-        setUser(parsed);
-        setDisplayName(parsed.display_name || "");
-        setBio(parsed.bio || "");
+        const parsed = JSON.parse(stored);
+        // Merge with current mock profile data (localStorage may be stale)
+        const freshProfile = mockGetProfileById(parsed.id);
+        const profile: Profile = {
+          ...parsed,
+          rac_score: freshProfile?.rac_score ?? parsed.rac_score ?? 0,
+        };
+        setUser(profile);
+        setDisplayName(profile.display_name || "");
+        setBio(profile.bio || "");
         setThreads(getThreadsByAuthor(parsed.id));
+        setReputation(mockGetReputationByProfile(parsed.id));
         return;
       }
 
@@ -63,6 +72,7 @@ export default function MyProfilePage() {
         display_name: profile.display_name,
         bio: profile.bio,
         avatar_url: profile.avatar_url,
+        rac_score: profile.rac_score ?? 0,
         created_at: profile.created_at,
       };
       setUser(mapped);
@@ -85,6 +95,11 @@ export default function MyProfilePage() {
             body: row.body,
             community_id: row.community_id,
             author_id: row.author_id,
+            thread_type: row.thread_type ?? "question",
+            question_type: row.question_type ?? null,
+            question_type_locked: row.question_type_locked ?? false,
+            status: row.status ?? "open",
+            accepted_answer_id: row.accepted_answer_id ?? null,
             upvotes: row.score ?? 0,
             comment_count: row.answer_count ?? 0,
             created_at: row.created_at,
@@ -94,6 +109,7 @@ export default function MyProfilePage() {
               display_name: row.author.display_name,
               bio: row.author.bio,
               avatar_url: row.author.avatar_url,
+              rac_score: row.author.rac_score ?? 0,
               created_at: row.author.created_at,
             } : undefined,
             community: row.community ? {
@@ -103,7 +119,38 @@ export default function MyProfilePage() {
               description: row.community.description,
               icon_url: row.community.icon_url,
               created_by: row.community.created_by,
-              member_count: 0,
+              member_count: row.community.member_count ?? 0,
+              created_at: row.community.created_at,
+            } : undefined,
+          }))
+        );
+      }
+
+      // Fetch reputation
+      const { data: repRows } = await supabase
+        .from("community_reputation")
+        .select("*, community:communities!community_id(*)")
+        .eq("profile_id", authUser.id)
+        .order("score", { ascending: false });
+
+      if (repRows) {
+        setReputation(
+          repRows.map((row) => ({
+            community_id: row.community_id,
+            profile_id: row.profile_id,
+            score: row.score ?? 0,
+            answers_accepted: row.answers_accepted ?? 0,
+            oracle_agreements: row.oracle_agreements ?? 0,
+            vote_accuracy: row.vote_accuracy ?? 0,
+            updated_at: row.updated_at,
+            community: row.community ? {
+              id: row.community.id,
+              name: row.community.name,
+              slug: row.community.slug,
+              description: row.community.description,
+              icon_url: row.community.icon_url,
+              created_by: row.community.created_by,
+              member_count: row.community.member_count ?? 0,
               created_at: row.community.created_at,
             } : undefined,
           }))
@@ -198,6 +245,11 @@ export default function MyProfilePage() {
               {user.bio && (
                 <p className="mt-2 text-sm leading-relaxed">{user.bio}</p>
               )}
+              {user.rac_score > 0 && (
+                <p className="mt-2 text-sm font-medium text-accent">
+                  RaC {user.rac_score}
+                </p>
+              )}
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => setEditing(true)}
@@ -216,6 +268,30 @@ export default function MyProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Reputation breakdown */}
+      {reputation.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-4">Reputation</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {reputation.map((r) => (
+              <Link
+                key={r.community_id}
+                href={`/community/${r.community?.slug}`}
+                className="rounded-xl border border-border p-3 hover:bg-surface-hover transition-colors"
+              >
+                <p className="text-sm font-medium truncate">
+                  {r.community?.name}
+                </p>
+                <p className="text-lg font-semibold text-accent">{r.score}</p>
+                <p className="text-xs text-muted">
+                  {r.answers_accepted} accepted
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* User's threads */}
       <section>

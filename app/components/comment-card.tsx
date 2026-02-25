@@ -1,5 +1,8 @@
+import Link from "next/link";
 import { Comment } from "@/lib/types";
 import Avatar from "./avatar";
+import AnswerVoteButtons from "./answer-vote-buttons";
+import AcceptAnswerButton from "./accept-answer-button";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -14,32 +17,56 @@ function timeAgo(dateStr: string): string {
 export default function CommentCard({
   comment,
   isReply = false,
+  threadId,
+  threadAuthorId,
+  communityId,
 }: {
   comment: Comment;
   isReply?: boolean;
+  threadId?: string;
+  threadAuthorId?: string;
+  communityId?: string;
 }) {
   return (
-    <div className={`flex gap-3 ${isReply ? "ml-10" : ""}`}>
-      <Avatar
-        name={comment.author?.display_name || null}
-        url={comment.author?.avatar_url}
-        size="sm"
-      />
+    <div className={`flex gap-3 ${isReply ? "ml-10" : ""} ${comment.is_accepted ? "rounded-xl border border-green-500/20 bg-green-500/5 p-3 -m-3" : ""}`}>
+      {comment.author ? (
+        <Link href={`/profile/${comment.author.id}`}>
+          <Avatar
+            name={comment.author.display_name || null}
+            url={comment.author.avatar_url}
+            size="sm"
+          />
+        </Link>
+      ) : (
+        <Avatar name={null} size="sm" />
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm font-medium">
-            {comment.author?.display_name || comment.author?.username}
-          </span>
+          {comment.author ? (
+            <Link href={`/profile/${comment.author.id}`} className="text-sm font-medium hover:text-accent transition-colors">
+              {comment.author.display_name || comment.author.username}
+            </Link>
+          ) : (
+            <span className="text-sm font-medium text-muted">[deleted]</span>
+          )}
           <span className="text-xs text-muted">
             {timeAgo(comment.created_at)}
           </span>
+          {comment.is_accepted && (
+            <span className="text-xs font-medium text-green-500">Accepted</span>
+          )}
         </div>
         <p className="text-sm leading-relaxed">{comment.body}</p>
-        <div className="mt-2 flex items-center gap-1 text-xs text-muted">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-          </svg>
-          {comment.upvotes}
+        <div className="mt-2 flex items-center gap-3">
+          <AnswerVoteButtons answerId={comment.id} initialScore={comment.upvotes} communityId={communityId} />
+          {threadId && threadAuthorId && (
+            <AcceptAnswerButton
+              answerId={comment.id}
+              threadId={threadId}
+              threadAuthorId={threadAuthorId}
+              isAccepted={comment.is_accepted}
+            />
+          )}
         </div>
       </div>
     </div>

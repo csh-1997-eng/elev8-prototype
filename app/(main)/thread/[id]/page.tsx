@@ -2,6 +2,8 @@ import { getThreadById, getCommentsByThread } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import Avatar from "../../../components/avatar";
 import CommentCard from "../../../components/comment-card";
+import NewAnswerForm from "../../../components/new-answer-form";
+import ClassificationVote from "../../../components/classification-vote";
 import Link from "next/link";
 
 function timeAgo(dateStr: string): string {
@@ -31,27 +33,47 @@ export default async function ThreadPage({
     <div className="max-w-3xl mx-auto space-y-8">
       {/* Thread header */}
       <div>
-        {thread.community && (
-          <Link
-            href={`/community/${thread.community.slug}`}
-            className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent/10 text-accent hover:bg-accent/20 transition-colors inline-block mb-3"
-          >
-            {thread.community.name}
-          </Link>
-        )}
+        <div className="flex items-center gap-2 mb-3">
+          {thread.community && (
+            <Link
+              href={`/community/${thread.community.slug}`}
+              className="text-xs font-medium px-2.5 py-1 rounded-full bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
+            >
+              {thread.community.name}
+            </Link>
+          )}
+          <span className="text-xs px-2.5 py-1 rounded-full border border-border text-muted">
+            {thread.thread_type}
+          </span>
+          {thread.status === "answered" && (
+            <span className="text-xs px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 font-medium">
+              Answered
+            </span>
+          )}
+        </div>
         <h1 className="text-2xl font-semibold leading-snug mb-3">
           {thread.title}
         </h1>
         <div className="flex items-center gap-3 mb-4">
-          <Avatar
-            name={thread.author?.display_name || null}
-            url={thread.author?.avatar_url}
-            size="sm"
-          />
+          {thread.author ? (
+            <Link href={`/profile/${thread.author.id}`}>
+              <Avatar
+                name={thread.author.display_name || null}
+                url={thread.author.avatar_url}
+                size="sm"
+              />
+            </Link>
+          ) : (
+            <Avatar name={null} size="sm" />
+          )}
           <div>
-            <span className="text-sm font-medium">
-              {thread.author?.display_name}
-            </span>
+            {thread.author ? (
+              <Link href={`/profile/${thread.author.id}`} className="text-sm font-medium hover:text-accent transition-colors">
+                {thread.author.display_name}
+              </Link>
+            ) : (
+              <span className="text-sm font-medium text-muted">[deleted]</span>
+            )}
             <span className="text-xs text-muted ml-2">
               {timeAgo(thread.created_at)}
             </span>
@@ -64,6 +86,17 @@ export default async function ThreadPage({
         <p className="text-base leading-relaxed">{thread.body}</p>
       )}
 
+      {/* Classification voting (only for questions) */}
+      {thread.thread_type === "question" && (
+        <div className="py-4 border-y border-border">
+          <ClassificationVote
+            threadId={id}
+            currentType={thread.question_type}
+            isLocked={thread.question_type_locked}
+          />
+        </div>
+      )}
+
       {/* Stats */}
       <div className="flex items-center gap-6 py-4 border-y border-border text-sm text-muted">
         <span className="flex items-center gap-1.5">
@@ -72,27 +105,42 @@ export default async function ThreadPage({
           </svg>
           {thread.upvotes} upvotes
         </span>
-        <span>{comments.length} comments</span>
+        <span>{comments.length} answers</span>
       </div>
 
-      {/* Comments */}
+      {/* Answers */}
       <div className="space-y-6">
         {topLevel.map((comment) => (
           <div key={comment.id} className="space-y-4">
-            <CommentCard comment={comment} />
+            <CommentCard
+              comment={comment}
+              threadId={id}
+              threadAuthorId={thread.author_id}
+              communityId={thread.community_id}
+            />
             {replies
               .filter((r) => r.parent_id === comment.id)
               .map((reply) => (
-                <CommentCard key={reply.id} comment={reply} isReply />
+                <CommentCard
+                  key={reply.id}
+                  comment={reply}
+                  isReply
+                  threadId={id}
+                  threadAuthorId={thread.author_id}
+                  communityId={thread.community_id}
+                />
               ))}
           </div>
         ))}
         {comments.length === 0 && (
           <p className="text-muted text-center py-8">
-            No comments yet. Be the first to share your thoughts.
+            No answers yet. Be the first to share your thoughts.
           </p>
         )}
       </div>
+
+      {/* Answer form */}
+      <NewAnswerForm threadId={id} />
     </div>
   );
 }
